@@ -1,201 +1,165 @@
+/** NOTE:
+ *  "input" and "output" are relative to the arudino:
+ *  "input"  refers to   (mux)   -> (arduino) 
+ *  "output" refers to (arduino) ->  (demux)
+ **/
 
-
-//Mux control pins for analog signal (SIG_pin) default for arduino mini pro
-const byte s0 = A4;
-const byte s1 = A3;
-const byte s2 = A2;
-const byte s3 = A1;
-
-//Mux control pins for Output signal (OUT_pin) default for arduino mini pro
-const byte w0 = 6;
+/* control pins */
+// output selector pins ['w' for "write"]
+const byte w0 = 6; 
 const byte w1 = 5;
 const byte w2 = 4;
 const byte w3 = 3;
+const byte writeSelector[] = {w0, w1, w2, w3};  // array of selector pins for demux we write to
+// input  selector pins ['r' for "read"]
+const byte r0 = A4;  ////////////////////////////////////////
+const byte r1 = A3;  // NOTE: here we use the analog input //
+const byte r2 = A2;  // pins A1-A4 as digital output pins  //
+const byte r3 = A1;  ////////////////////////////////////////
+const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux we read from
 
-//Mux in "SIG" pin default for arduino mini pro
-const byte SIG_pin = 0;
+/* signal pins */
+const byte out = 2;  // output signal pin
+const byte in = 0;  // input  signal pin
 
-//Mux out "SIG" pin default for arduino mini pro
-const byte OUT_pin = 2;
+/* selector bits for each channel of mux/demux */
+const boolean channelSelector[16][4] = {
+  {0,0,0,0},  // channel 0
+  {1,0,0,0},  // channel 1
+  {0,1,0,0},  // channel 2
+  {1,1,0,0},  // channel 3
+  {0,0,1,0},  // channel 4
+  {1,0,1,0},  // channel 5
+  {0,1,1,0},  // channel 6
+  {1,1,1,0},  // channel 7
+  {0,0,0,1},  // channel 8
+  {1,0,0,1},  // channel 9
+  {0,1,0,1},  // channel 10
+  {1,1,0,1},  // channel 11
+  {0,0,1,1},  // channel 12
+  {1,0,1,1},  // channel 13
+  {0,1,1,1},  // channel 14
+  {1,1,1,1},  // channel 15
+};
 
-//Row and Column pins default for arduino mini pro
-const byte STATUS_pin = 8;
-const byte COL_pin = 9;
-
-const boolean muxChannel[16][4]={
-    {0,0,0,0}, //channel 0
-    {1,0,0,0}, //channel 1
-    {0,1,0,0}, //channel 2
-    {1,1,0,0}, //channel 3
-    {0,0,1,0}, //channel 4
-    {1,0,1,0}, //channel 5
-    {0,1,1,0}, //channel 6
-    {1,1,1,0}, //channel 7
-    {0,0,0,1}, //channel 8
-    {1,0,0,1}, //channel 9
-    {0,1,0,1}, //channel 10
-    {1,1,0,1}, //channel 11
-    {0,0,1,1}, //channel 12
-    {1,0,1,1}, //channel 13
-    {0,1,1,1}, //channel 14
-    {1,1,1,1}  //channel 15
-  };
-
-
-//incoming serial byte
+int minReading = 255;  // the minimum reading of the sensor
+int minCalibration[5][5];  // stores the minimum value for each of the 16*16 sensors.
+int maxReading = 1023;  // the maximum reading of the sensor; set to 0 if calibration of the maximum value is implemented.
+// int maxCalibration[5][5];  // stores the maximum value for each of the 16*16 sensors.
 int inByte = 0;
+int outByte = 0;
 
-int valor = 0;               //variable for sending bytes to processing
-int calibra[15][15];         //Calibration array for the min values of each od the 225 sensors.
-int minsensor=254;          //Variable for staring the min array
-int multiplier = 254;
-int pastmatrix[15][15];
-
-void setup(){
-
-  pinMode(s0, OUTPUT);
-  pinMode(s1, OUTPUT);
-  pinMode(s2, OUTPUT);
-  pinMode(s3, OUTPUT);
-
+void setup() {
+/* configure control pins */
   pinMode(w0, OUTPUT);
   pinMode(w1, OUTPUT);
   pinMode(w2, OUTPUT);
   pinMode(w3, OUTPUT);
+  pinMode(r0, OUTPUT);
+  pinMode(r1, OUTPUT);
+  pinMode(r2, OUTPUT);
+  pinMode(r3, OUTPUT);
 
-  pinMode(OUT_pin, OUTPUT);
+/* configure signal pins */
+  pinMode(out, OUTPUT);
+  // analog input pins (A0-A5) only input analog signals; no need to set pinMode() for them
 
-  pinMode(STATUS_pin, OUTPUT);
-  pinMode(COL_pin, OUTPUT);
-
-
-  digitalWrite(s0, LOW);
-  digitalWrite(s1, LOW);
-  digitalWrite(s2, LOW);
-  digitalWrite(s3, LOW);
-
+/* initialize input and output control pins to channel 0 */
   digitalWrite(w0, LOW);
   digitalWrite(w1, LOW);
   digitalWrite(w2, LOW);
   digitalWrite(w3, LOW);
-
-  digitalWrite(OUT_pin, HIGH);
-  digitalWrite(STATUS_pin, HIGH);
-  digitalWrite(COL_pin, HIGH);
-
-
+  digitalWrite(r0, LOW);
+  digitalWrite(r1, LOW);
+  digitalWrite(r2, LOW);
+  digitalWrite(r3, LOW);
+/* output signal pin will always be HIGH */
+  digitalWrite(out, HIGH);
 
   Serial.begin(115200);
+  Serial.println("Calibrating...");
 
-  Serial.println("\n\Calibrating...\n");
-
-  // Full of 0's of initial matrix
-  for(byte j = 0; j < 15; j ++){
-    writeMux(j);
-    for(byte i = 0; i < 15; i ++)
-      calibra[j][i] = 0;
-  }
-
-  // Calibration
-  for(byte k = 0; k < 50; k++){
-    for(byte j = 0; j < 15; j ++){
-      writeMux(j);
-      for(byte i = 0; i < 15; i ++)
-        calibra[j][i] = calibra[j][i] + readMux(i);
+/* calibration process */
+  // initialize the calibration array to 0s
+  for (int i = 0; i < 5; ++i) {
+    writeToDemux(i);
+    for (int j = 0; j < 5; ++j) {
+      minCalibration[i][j] = 0;
     }
   }
-
-  //Print averages
-  for(byte j = 0; j < 15; j ++){
-    writeMux(j);
-    for(byte i = 0; i < 15; i ++){
-      calibra[j][i] = calibra[j][i]/50;
-      if(calibra[j][i] < minsensor)
-        minsensor = calibra[j][i];
-      Serial.print(calibra[j][i]);
+  // take the average over 50 readings and calculate the minimum reading
+  for (int k = 0; k < 50; ++k) {
+    for (int i = 0; i < 5; ++i) {
+      writeToDemux(i);
+      for (int j = 0; j < 5; ++j) {
+        minCalibration[i][j] += readFromMux(j);
+      }
+    }
+  }
+  for (int i = 0; i < 5; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      if (minCalibration[i][j] < minReading) {
+        minReading = minCalibration[i][j];
+      }
+      // print the average minimum readings
+      Serial.print(minCalibration[i][j]);
       Serial.print("\t");
     }
-  Serial.println();
+    Serial.println();
   }
 
   Serial.println();
-  Serial.print("Minimum Value: ");
-  Serial.println(minsensor);
+  Serial.print("Minimum value: ");
+  Serial.print(minReading);
   Serial.println();
 
   establishContact();
-
-  digitalWrite(COL_pin, LOW);
 }
 
-
-void loop(){
-  //Loop through and read all 16 values
-  //Reports back Value at channel 6 is: 346
-  if (Serial.available() > 0){
+void loop() {
+  // put your main code here, to run repeatedly:
+  if (Serial.available() > 0) {
     inByte = Serial.read();
-
-    if(inByte == 'A'){
-
-      for(int j = 14; j >= 0; j--){
-        writeMux(j);
-
-        for(int i = 0; i < 15; i++){
-
-          valor = readMux(i);
-
-          //Saturation sensors
-          int limsup = 450;
-          if(valor > limsup)
-            valor = limsup;
-
-          if(valor < calibra[j][i])
-            valor = calibra[j][i];
-
-          valor = map(valor,minsensor, limsup,1,254);
-
-          if(valor < 150)
-            valor = 0;
-          if(valor > 254)
-            valor = 254;
-
-          Serial.write(valor);
-          digitalWrite(COL_pin,!digitalRead(COL_pin));
+    if (inByte == 'A') {
+      for (int i = 0; i < 5; ++i) {
+        writeToDemux(i);
+        for (int j = 0; j < 5; ++j) {
+          outByte = readFromMux(j);
+          // clamp the sensor value to the range [minReading, maxReading]
+          if (outByte > maxReading) {
+            outByte = maxReading;
+          } else if (outByte < minReading) {
+            outByte = minReading;
+          }
+          // scale the sensor value from 10 bits to 8 bits
+          outByte = map(readFromMux(j), minReading, maxReading, 0, 255);
+          // send to processing
+          Serial.write(outByte);
         }
       }
     }
-
   }
 }
 
-
-int readMux(byte channel){
-  byte controlPin[] = {s0, s1, s2, s3};
-
-  //loop through the 4 sig
-  for(int i = 0; i < 4; i ++){
-    digitalWrite(controlPin[i], muxChannel[channel][i]);
+// write HIGH to selected demux channel
+void writeToDemux(byte channel) {
+  for (int i = 0; i < 4; ++i) {
+    digitalWrite(writeSelector[i], channelSelector[channel][i]);
   }
-
-  //read the value at the SIG pin
-  int val = analogRead(SIG_pin);
-
-  //return the value
-  return val;
+  // output pin is always on HIGH, so no need to use digitalWrite()
 }
 
-void writeMux(byte channel){
-  byte controlPin[] = {w0, w1, w2, w3};
-
-  //loop through the 4 sig
-  for(byte i = 0; i < 4; i ++){
-    digitalWrite(controlPin[i], muxChannel[channel][i]);
+// read input from selected mux channel
+int readFromMux(byte channel) {
+  for (int i = 0; i < 4; ++i) {
+    digitalWrite(readSelector[i], channelSelector[channel][i]);
   }
+  return analogRead(in);
 }
 
 void establishContact() {
   while (Serial.available() <= 0) {
-    Serial.print('A');   // send a capital A
-    delay(300);
+    Serial.print('A');  // send a capital A
+    delay(250);
   }
 }
