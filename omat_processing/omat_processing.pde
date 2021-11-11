@@ -27,10 +27,10 @@ void draw() {
   if (render) {
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < n; ++j) {
-        fill(sensorReadings[i*n+j], 0, 0);
-        rect(i*s+h, j*s+h, s, s);
-        fill(255);
-        text(sensorReadings[i*n+j], i*s+h, j*s+h);
+        fill(sensorReadings[i*n+j], 0, 0); // Fill the next shape with variable intensity of red
+        rect(i*s+h, j*s+h, s, s); // Creates a square of length s at this index
+        fill(255); // FIll the next shape with white
+        text(sensorReadings[i*n+j], i*s+h, j*s+h); // Display the sensor reading at this index
       }
     }
     
