@@ -4,6 +4,9 @@
  *  "output" refers to (arduino) ->  (demux)
  **/
 
+/* SETTINGS */
+const int N = 5;  // number of rows/cols for the sensing array; [1-16]
+
 /* control pins */
 // output selector pins ['w' for "write"]
 const byte w0 = 6; 
@@ -20,7 +23,7 @@ const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux
 
 /* signal pins */
 const byte out = 2;  // output signal pin
-const byte in = 0;  // input  signal pin
+const byte  in = 0;  //  input signal pin
 
 /* selector bits for each channel of mux/demux */
 const boolean channelSelector[16][4] = {
@@ -42,12 +45,13 @@ const boolean channelSelector[16][4] = {
   {1,1,1,1},  // channel 15
 };
 
-int minReading = 255;  // the minimum reading of the sensor
-int minCalibration[5][5];  // stores the minimum value for each of the 16*16 sensors.
-int maxReading = 1023;  // the maximum reading of the sensor; set to 0 if calibration of the maximum value is implemented.
+int minReading = 1023;     // the minimum reading of the sensor
+int minCalibration[N][N];  // stores the minimum value for each of the 16*16 sensors.
+int maxReading = 1023;  // the maximum reading of the sensor  /* TODO: set to 0 if calibration of the maximum value is implemented */
+/* TODO: implement calibration for maximum pressure */
 // int maxCalibration[5][5];  // stores the maximum value for each of the 16*16 sensors.
-int inByte = 0;
-int outByte = 0;
+int inByte = 0;   // the byte to receive from Processing through the serial port
+int outByte = 0;  // the byte to send to Processing through the serial port
 
 void setup() {
 /* configure control pins */
@@ -81,23 +85,23 @@ void setup() {
 
 /* calibration process */
   // initialize the calibration array to 0s
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < N; ++i) {
     writeToDemux(i);
-    for (int j = 0; j < 5; ++j) {
+    for (int j = 0; j < N; ++j) {
       minCalibration[i][j] = 0;
     }
   }
   // take the average over 50 readings and calculate the minimum reading
   for (int k = 0; k < 50; ++k) {
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < N; ++i) {
       writeToDemux(i);
-      for (int j = 0; j < 5; ++j) {
+      for (int j = 0; j < N; ++j) {
         minCalibration[i][j] += readFromMux(j);
       }
     }
   }
-  for (int i = 0; i < 5; ++i) {
-    for (int j = 0; j < 5; ++j) {
+  for (int i = 0; i < N; ++i) {
+    for (int j = 0; j < N; ++j) {
       if (minCalibration[i][j] < minReading) {
         minReading = minCalibration[i][j];
       }
@@ -117,13 +121,12 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   if (Serial.available() > 0) {
     inByte = Serial.read();
     if (inByte == 'A') {
-      for (int i = 0; i < 5; ++i) {
+      for (int i = 0; i < N; ++i) {
         writeToDemux(i);
-        for (int j = 0; j < 5; ++j) {
+        for (int j = 0; j < N; ++j) {
           outByte = readFromMux(j);
           // clamp the sensor value to the range [minReading, maxReading]
           if (outByte > maxReading) {
@@ -157,6 +160,7 @@ int readFromMux(byte channel) {
   return analogRead(in);
 }
 
+// establish contact with Processing
 void establishContact() {
   while (Serial.available() <= 0) {
     Serial.print('A');  // send a capital A
