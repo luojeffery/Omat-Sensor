@@ -30,14 +30,14 @@ void draw() {
   background(0);
   if (render) {
     String line = month() + "/" + day() + "/" + year() + " " + 
-                    hour() + ":" + minute() + ":" + second() + ":" + millis() + " ";
+                    hour() + ":" + minute() + ":" + second() + ":" + millis() + " "; // prepended timestamp
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
         rect(i*s+h, j*s+h, s, s);  // Create a square of length s at this index
         fill(255);  // Fill the next shape with white
         text(sensorReadings[i*N+j], i*s+h, j*s+h);  // Display the sensor reading at this index
-        line += String.format("%1$-3s", sensorReadings[i*N+j]) + " ";
+        line += String.format("%1$-3s", sensorReadings[i*N+j]) + " "; // formats the sensor reading as a right-padded three digit number
       }
     }
     output.println(line);
