@@ -30,7 +30,7 @@ void draw() {
   background(0);
   if (render) {
     String line = month() + "/" + day() + "/" + year() + " " + 
-                    hour() + ":" + minute() + ":" + second();
+                    hour() + ":" + minute() + ":" + second() + ":" + millis() + " ";
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
