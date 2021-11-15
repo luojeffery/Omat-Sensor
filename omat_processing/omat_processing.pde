@@ -9,6 +9,7 @@ boolean firstContact = false;
 int[] sensorReadings = new int[n*n];
 int numSensorReadings = 0;
 boolean render = false;
+PrintWriter output;
 
 void setup() {
   // set up the Processing canvas
@@ -20,20 +21,25 @@ void setup() {
   h = s/2;
   // set up the serial port
   port = new Serial(this, Serial.list()[0], 115200);
+  output = createWriter("log.txt");
 }
 
 void draw() {
   background(0);
   if (render) {
+    String line = month() + "/" + day() + "/" + year() + " " + 
+                    hour() + ":" + minute() + ":" + second();
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < n; ++j) {
         fill(sensorReadings[i*n+j], 0, 0);
         rect(i*s+h, j*s+h, s, s);
         fill(255);
         text(sensorReadings[i*n+j], i*s+h, j*s+h);
+        line += String.format("%1$-3s", sensorReadings[i*n+j]) + " ";
       }
     }
-    
+    output.println(line);
+    output.flush();
     render = false;
   }
   delay(100);
@@ -57,4 +63,8 @@ void serialEvent(Serial port) {
       render = true;
     }
   }
+}
+
+void stop() {
+  output.close();
 }
