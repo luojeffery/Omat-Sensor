@@ -3,6 +3,7 @@
 This repo houses code for a 5 x 5 grid of resistive pressure sensors.
 
 Each grid square in the corresponding space where pressure was applied will light up in red with different intensities. Each square will display a value in the range [0, 255] corresponding to the amount of pressure that was applied to the pressure sensing mat. Every number represents the voltage values that are passed into the analog pins of the Arduino, as shown below:
+
 ![image](https://user-images.githubusercontent.com/67873222/142481914-89fea856-ecbf-4bec-9506-4303a3ed938e.png)
 
 This code will log the data into a file in the `Omat-Sensor/omat_processing/` directory. Each line is prepended with a timestamp in `MM/DD/YY Hours:Minutes:Seconds:Milliseconds` format, and a snapshot of all the voltage values are displayed on that line, in row major order.
