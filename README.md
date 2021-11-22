@@ -12,7 +12,7 @@ This code will log the data into a file in the `Omat-Sensor/omat_processing/` di
 
 In order to run this code, first download this repository to your computer (Code > Download ZIP). Extract the ZIP file, and open `Omat-Sensor/omat_arduino/omat_arduino.ino` with the Arduino IDE. Connect the Arduino to your computer. Make sure to select the correct port (Tools > Port). Once that is done, upload and run the code.
 
-Wait a few seconds before opening and running `Omat-Sensor/omat_processing/omat_processing.pde`. Now, there should be a popup window showing a grid of values. You should be able to see the grid light up when pressure is applied to the sensing array. 
+Wait a few seconds before opening and running `Omat-Sensor/omat_processing/omat_processing.pde`. There should be a popup window showing a grid of values. You should be able to see the grid light up when pressure is applied to the sensing array. 
 
 <!---
 The Arduino sends serial data into a port in the computer, which triggers Processing's serialEvent(), from which we can display the locations and magnitudes of pressure. 
