@@ -24,6 +24,8 @@ const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux
 /* signal pins */
 const byte out = 2;  // output signal pin
 const byte  in = 0;  //  input signal pin
+const byte green_led = 8;
+const byte red_led = 9;
 
 /* selector bits for each channel of mux/demux */
 const boolean channelSelector[16][4] = {
@@ -68,6 +70,9 @@ void setup() {
   pinMode(out, OUTPUT);
   // analog input pins (A0-A5) only input analog signals; no need to set pinMode() for them
 
+  pinMode(green_led, OUTPUT);
+  pinMode(red_led, OUTPUT);
+
 /* initialize input and output control pins to channel 0 */
   digitalWrite(w0, LOW);
   digitalWrite(w1, LOW);
@@ -79,6 +84,8 @@ void setup() {
   digitalWrite(r3, LOW);
 /* output signal pin will always be HIGH */
   digitalWrite(out, HIGH);
+  digitalWrite(green_led, HIGH);
+  digitalWrite(red_led, HIGH);
 
   Serial.begin(115200);
   Serial.println("Calibrating...");
@@ -118,6 +125,8 @@ void setup() {
   Serial.println();
 
   establishContact();
+
+  //digitalWrite(red_led, LOW);
 }
 
 void loop() {
@@ -135,9 +144,10 @@ void loop() {
             outByte = minReading;
           }
           // scale the sensor value from 10 bits to 8 bits
-          outByte = map(readFromMux(j), minReading, maxReading, 0, 255);
+          //outByte = map(readFromMux(j), minReading, maxReading, 0, 255);
           // send to processing
           Serial.write(outByte);
+          //digitalWrite(red_led, !digitalRead(red_led));
         }
       }
     }
