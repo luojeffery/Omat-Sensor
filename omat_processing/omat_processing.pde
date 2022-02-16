@@ -34,6 +34,7 @@ void draw() {
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
         float voltage = sensorReadings[i*N+j] * (5.0 / 255);
+        float resistance = 1000.0 * ((5.0 / voltage) - 1.0);
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
         rect(i*s+h, j*s+h, s, s);  // Create a square of length s at this index
         fill(255);  // Fill the next shape with white
