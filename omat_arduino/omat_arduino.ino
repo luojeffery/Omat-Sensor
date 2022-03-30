@@ -24,6 +24,8 @@ const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux
 /* signal pins */
 const byte out = 2;  // output signal pin
 const byte  in = 0;  //  input signal pin
+const byte green_led = 8;
+const byte red_led = 9;
 
 /* selector bits for each channel of mux/demux */
 const boolean channelSelector[16][4] = {
@@ -45,11 +47,8 @@ const boolean channelSelector[16][4] = {
   {1,1,1,1},  // channel 15
 };
 
-int minReading = 1023;     // the minimum reading of the sensor
-int minCalibration[N][N];  // stores the minimum value for each of the 16*16 sensors.
-int maxReading = 1023;  // the maximum reading of the sensor  /* TODO: set to 0 if calibration of the maximum value is implemented */
-/* TODO: implement calibration for maximum pressure */
-// int maxCalibration[5][5];  // stores the maximum value for each of the 16*16 sensors.
+int minReading = 0;     // the minimum reading of the sensor
+int maxReading = 1023;  // the maximum reading of the sensor
 int inByte = 0;   // the byte to receive from Processing through the serial port
 int outByte = 0;  // the byte to send to Processing through the serial port
 
@@ -68,6 +67,9 @@ void setup() {
   pinMode(out, OUTPUT);
   // analog input pins (A0-A5) only input analog signals; no need to set pinMode() for them
 
+  pinMode(green_led, OUTPUT);
+  pinMode(red_led, OUTPUT);
+
 /* initialize input and output control pins to channel 0 */
   digitalWrite(w0, LOW);
   digitalWrite(w1, LOW);
@@ -79,45 +81,14 @@ void setup() {
   digitalWrite(r3, LOW);
 /* output signal pin will always be HIGH */
   digitalWrite(out, HIGH);
+  digitalWrite(green_led, HIGH);
+  digitalWrite(red_led, HIGH);
 
+/* Begin connecting to Processing */
   Serial.begin(115200);
-  Serial.println("Calibrating...");
-
-/* calibration process */
-  // initialize the calibration array to 0s
-  for (int i = 0; i < N; ++i) {
-    writeToDemux(i);
-    for (int j = 0; j < N; ++j) {
-      minCalibration[i][j] = 0;
-    }
-  }
-  // take the average over 50 readings and calculate the minimum reading
-  for (int k = 0; k < 50; ++k) {
-    for (int i = 0; i < N; ++i) {
-      writeToDemux(i);
-      for (int j = 0; j < N; ++j) {
-        minCalibration[i][j] += readFromMux(j);
-      }
-    }
-  }
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      if (minCalibration[i][j] < minReading) {
-        minReading = minCalibration[i][j];
-      }
-      // print the average minimum readings
-      Serial.print(minCalibration[i][j]);
-      Serial.print("\t");
-    }
-    Serial.println();
-  }
-
-  Serial.println();
-  Serial.print("Minimum value: ");
-  Serial.print(minReading);
-  Serial.println();
-
   establishContact();
+
+  digitalWrite(red_led, LOW);
 }
 
 void loop() {
@@ -127,17 +98,20 @@ void loop() {
       for (int i = 0; i < N; ++i) {
         writeToDemux(i);
         for (int j = 0; j < N; ++j) {
-          outByte = readFromMux(j);
+          int reading = readFromMux(j);
           // clamp the sensor value to the range [minReading, maxReading]
-          if (outByte > maxReading) {
-            outByte = maxReading;
+          /*
+          if (reading > maxReading) {
+            out = maxReading;
           } else if (outByte < minReading) {
             outByte = minReading;
           }
+          */
           // scale the sensor value from 10 bits to 8 bits
           outByte = map(readFromMux(j), minReading, maxReading, 0, 255);
-          // send to processing
+          // send to Processing
           Serial.write(outByte);
+          digitalWrite(red_led, !digitalRead(red_led));
         }
       }
     }
