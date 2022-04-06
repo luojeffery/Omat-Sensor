@@ -23,7 +23,7 @@ const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux
 
 /* signal pins */
 const byte out = 2;  // output signal pin
-const byte  in = 0;  //  input signal pin
+const byte  in = A0;  //  input signal pin
 const byte green_led = 8;
 const byte red_led = 9;
 

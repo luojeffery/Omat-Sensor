@@ -61,9 +61,11 @@ void draw() {
         fill(255);  // Fill the next shape with white
         if (Float.isInfinite(resistance))
           text("Inf k\u2126", i*s+h, j*s+h);
-        else
+        else {
+        //%.2fk\u2126
           text(String.format("%.2fk\u2126", resistance), i*s+h, j*s+h);  // Display the sensor reading at this index
-        line += String.format("%1$-3s", 1000 * resistance + ","); // formats the sensor reading as a right-padded three digit number
+        //line += String.format("%1$-3s", 1000 * resistance + ","); // formats the sensor reading as a right-padded three digit number
+        }
       }
     }
     output.println(line);
