@@ -11,6 +11,7 @@ Serial port;
 Serial force_port;
 boolean firstContact = false;
 int[] sensorReadings = new int[N*N];
+float[][] calibration = new float[N][N];
 int numSensorReadings = 0;
 boolean render = false;
 PrintWriter output;
@@ -40,32 +41,29 @@ void setup() {
 }
 void draw() {
   background(0);
+  
   if (render) {
     String line = month() + "/" + day() + "/" + year() + " " +
-                    hour() + ":" + minute() + ":" + second() + ":" + millis() + " "; // prepended timestamp
+                    hour() + ":" + minute() + ":" + second() + ":" + millis() + ","; // prepended timestamp
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        try {
-          // force_port.write("?\r");
-          // String forces = force_port.readString();
-          // println(forces);
-        }
-        catch (Exception e) {
-          println("Serial Port Exception.");
-          e.printStackTrace();
-        }
         float voltage = sensorReadings[i*N+j] * (5.0 / 255);
-        float resistance = ((5.0 / voltage) - 1.0); // resistance is in kiloohms
+        voltage = voltage - calibration[i][j];
+        //float resistance = ((5.0 / voltage) - 1.0); // resistance is in kiloohms
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
         rect(i*s+h, j*s+h, s, s);  // Create a square of length s at this index
         fill(255);  // Fill the next shape with white
-        if (Float.isInfinite(resistance))
-          text("Inf k\u2126", i*s+h, j*s+h);
-        else {
+        //if (Float.isInfinite(resistance)) {
+          //text("Inf k\u2126", i*s+h, j*s+h);
+          //line += resistance + ",";
+        //}
+       
+        //else {
         //%.2fk\u2126
-          text(String.format("%.2fk\u2126", resistance), i*s+h, j*s+h);  // Display the sensor reading at this index
-        //line += String.format("%1$-3s", 1000 * resistance + ","); // formats the sensor reading as a right-padded three digit number
-        }
+        //%1$-3s
+          text(String.format("%4.3fV", voltage), i*s+h, j*s+h);  // Display the sensor reading at this index
+          line += String.format("%4.3fV", voltage) + ","; // formats the sensor reading as a right-padded three digit number
+        //}
       }
     }
     output.println(line);
@@ -91,6 +89,16 @@ void serialEvent(Serial port) {
       port.write('A');
       numSensorReadings = 0;
       render = true;
+    }
+  }
+}
+
+void keyPressed() {
+  //calibration function
+  for (int i = 0; i < N; ++i) {
+    for (int j = 0; j < N; ++j) {
+      calibration[i][j] = sensorReadings[i*N+j] * (5.0 / 255);
+
     }
   }
 }
