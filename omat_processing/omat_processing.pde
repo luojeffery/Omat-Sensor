@@ -4,6 +4,8 @@ import java.util.*;
 
 /* SETTINGS */
 int N = 5;  // number of rows/cols for the sensing array; [1-16]
+int SERIAL_PORT = 0;  // which serial port is the Arduino connected to?
+float VOLTAGE_IN = 5.0;  // what is the supply voltage?
 
 int s;  // side length of each square, assuming width==height
 int h;  // half the side length, so integer coordinates represent the centers of the squares
@@ -30,7 +32,7 @@ void setup() {
   s = width/N;
   h = s/2;
   // set up the serial port
-  port = new Serial(this, Serial.list()[0], 115200);
+  port = new Serial(this, Serial.list()[SERIAL_PORT], 115200);
   // force_port = new Serial(this, Serial.list()[1],115200); 
   printArray(Serial.list());
 
@@ -47,7 +49,7 @@ void draw() {
                     hour() + ":" + minute() + ":" + second() + ":" + millis() + ","; // prepended timestamp
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        float voltage = sensorReadings[i*N+j] * (5.0 / 255);
+        float voltage = VOLTAGE_IN - sensorReadings[i*N+j] * (VOLTAGE_IN / 255.0);
         voltage = voltage - calibration[i][j];
         //float resistance = ((5.0 / voltage) - 1.0); // resistance is in kiloohms
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
