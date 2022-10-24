@@ -4,8 +4,9 @@ import java.util.*;
 
 /* SETTINGS */
 int N = 5;  // number of rows/cols for the sensing array; [1-16]
-int SERIAL_PORT = 0;  // which serial port is the Arduino connected to?
-float VOLTAGE_IN = 5.0;  // what is the supply voltage?
+int SERIAL_PORT = 2;  // which serial port is the Arduino connected to?
+float VOLTAGE_IN = 5;  // what is the supply voltage?
+float REFERENCE_RESISTANCE = 1;  // what is the resistance of the reference resistor (in kilo-ohms)?
 
 int s;  // side length of each square, assuming width==height
 int h;  // half the side length, so integer coordinates represent the centers of the squares
@@ -51,7 +52,7 @@ void draw() {
       for (int j = 0; j < N; ++j) {
         float voltage = VOLTAGE_IN - sensorReadings[i*N+j] * (VOLTAGE_IN / 255.0);
         voltage = voltage - calibration[i][j];
-        //float resistance = ((5.0 / voltage) - 1.0); // resistance is in kiloohms
+        //float resistance = REFERENCE_RESISTANCE * (VOLTAGE_IN / voltage - 1.0); // resistance is in kiloohms
         fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
         rect(i*s+h, j*s+h, s, s);  // Create a square of length s at this index
         fill(255);  // Fill the next shape with white
