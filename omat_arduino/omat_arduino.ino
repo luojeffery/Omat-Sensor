@@ -9,21 +9,21 @@ const int N = 5;  // number of rows/cols for the sensing array; [1-16]
 
 /* control pins */
 // output selector pins ['w' for "write"]
-const byte w0 = 6; 
-const byte w1 = 5;
-const byte w2 = 4;
-const byte w3 = 3;
+const byte w0 = 3; 
+const byte w1 = 4;
+const byte w2 = 5;
+const byte w3 = 6;
 const byte writeSelector[] = {w0, w1, w2, w3};  // array of selector pins for demux we write to
 // input  selector pins ['r' for "read"]
-const byte r0 = A4;  ////////////////////////////////////////
-const byte r1 = A3;  // NOTE: here we use the analog input //
+const byte r0 = A0;  ////////////////////////////////////////
+const byte r1 = A1;  // NOTE: here we use the analog input //
 const byte r2 = A2;  // pins A1-A4 as digital output pins  //
-const byte r3 = A1;  ////////////////////////////////////////
+const byte r3 = A3;  ////////////////////////////////////////
 const byte readSelector[] = {r0, r1, r2, r3};  // array of selector pins for mux we read from
 
 /* signal pins */
-const byte out = 2;  // output signal pin
-const byte  in = A0;  //  input signal pin
+const byte out = 7;  // output signal pin
+const byte  in = A4;  //  input signal pin
 const byte green_led = 8;
 const byte red_led = 9;
 
