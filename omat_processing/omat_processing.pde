@@ -1,6 +1,6 @@
 import processing.serial.*;
 
-enum Measure {NA, VOLTAGE, RESISTANCE};
+enum Measure { VOLTAGE, RESISTANCE };
 
 /* SETTINGS */
 final int N = 5;  // number of rows(==cols) for sensing array
@@ -9,15 +9,15 @@ final int SERIAL_BAUD = 115200;  // what is the baud rate of the serial port?
 final float V_IN = 5;    // supply voltage (V)
 final float R_RF = 1;    // reference resistance (kOhms)
 final float R_TH = 100;  // threshold resistance (kOhms), consider anything above to be overload
-Measure display = Measure.RESISTANCE;  // display voltage or resistance?
+Measure measure = Measure.VOLTAGE;  // measure voltage or resistance?
 
 /* GLOBAL VARIABLES */
 Serial port;
 int numSensorReadings = 0;
-int[]  sensorReadings = new int[N*N];
+int[] sensorReadings = new int[N*N];
 boolean firstContact = false;
 boolean shouldRender = false;
-
+Logger logger = new Logger(measure);
 
 void setup()
 {
@@ -41,6 +41,7 @@ void draw()
   int s = width/N;
   int h = s/2;
   
+  logger.beginLine();
   for (int i = 0; i < N; ++i) {
   for (int j = 0; j < N; ++j) {
     // compute voltage and resistance
@@ -52,17 +53,21 @@ void draw()
     fill(sensorReadings[i*N+j], 0, 0);
     rect(i*s+h, j*s+h, s, s);
     fill(255);
-    if (display == Measure.VOLTAGE) {
-      text(String.format("%.2f V", v_sensor), i*s+h, j*s+h);
-    }
-    else if (display == Measure.RESISTANCE) {
-      if (r_sensor > R_TH)
+    if (measure == Measure.VOLTAGE) {
+      text(String.format("%1.2f V", v_sensor), i*s+h, j*s+h);
+      logger.log(v_sensor);
+    } else {
+      if (r_sensor > R_TH) {
         text("OL", i*s+h, j*s+h);
-      else
-        text(String.format("%.2f k\u2126", r_sensor), i*s+h, j*s+h);
+        logger.log(Float.MAX_VALUE);
+      } else {
+        text(String.format("%3.2f k\u2126", r_sensor), i*s+h, j*s+h);
+        logger.log(r_sensor);        
+      }
     }
   }
   }
+  logger.endLine();
   shouldRender = false;
   delay(100);
 }
@@ -95,11 +100,11 @@ void serialEvent(Serial port) {
 
 void keyPressed()
 {
-  swapMeasurement();
+  //swapMeasurement();
 }
 
 void swapMeasurement()
 {
-  if      (display == Measure.VOLTAGE)    display = Measure.RESISTANCE;
-  else if (display == Measure.RESISTANCE) display = Measure.VOLTAGE;
+  if      (measure == Measure.VOLTAGE)    measure = Measure.RESISTANCE;
+  else if (measure == Measure.RESISTANCE) measure = Measure.VOLTAGE;
 }
