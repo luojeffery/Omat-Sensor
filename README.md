@@ -1,28 +1,68 @@
 # Omat-Sensor
 
-This repo houses code for a 5 x 5 grid of resistive pressure sensors.
+> ## Table of Conents
+> 1. [Introduction](#introduction)
+> 1. [Demo](#demo)
+> 1. [Details](#details)
+> 1. [How to Run](#how-to-run)
+> 1. [References](#references)
 
-Each grid square lights up with different intensities and displays a value in the range [0, 255] corresponding to the pressure at that location. The values represent how much voltage the Arduino's analog pins receive, as shown below:
+## Introduction
 
-![Perspective view of the circuit](res/circuit1.jpg)
-![Top-down view of the circuit](res/circuit2.jpg)
-![Top-down view of the sensor grid](res/grid1.jpg)
+The O-mat sensor is designed to support flexible and scalable pressure sensors. Using our circuit and code, you can plug in a sensing grid and get a visual representation and log of recorded voltages and resistances.
 
-This code will log the data into a file in the `Omat-Sensor/omat_processing/` directory. Each line is prepended with a timestamp in `MM/DD/YY Hours:Minutes:Seconds:Milliseconds` format, and a snapshot of all the voltage values are displayed on that line, in row major order.
+<div style="display:flex">
+    <div style="flex:1; padding-right:10px">
+        <img src="res/circuit1.jpg">
+    </div>
+    <div style="flex:1; padding-right:10px">
+        <img src="res/circuit2.jpg">
+    </div>
+    <div style="flex:1; padding-right:10px">
+        <img src="res/grid1.jpg">
+    </div>
+</div>
+
+<br>
 
 ## Demo
 
-![Demo of the pressure sensor (1)](res/demo1.jpg)
-![Demo of the pressure sensor (2)](res/demo2.jpg)
-![Demo of the pressure sensor (3)](res/demo3.jpg)
+<div style="display:flex">
+    <div style="flex:1; padding-right:10px">
+        <img src="res/demo1.jpg">
+    </div>
+    <div style="flex:1; padding-right:10px">
+        <img src="res/demo2.jpg">
+    </div>
+    <div style="flex:1; padding-right:10px">
+        <img src="res/demo3.jpg">
+    </div>
+</div>
+
+<br>
+
+## Details
+The voltage displayed on each grid point is the voltage across each intersection point between the rows and columns. According to our testing, the margin of error from a multimeter reading is &#xB1;0.5V, so keep that in mind if you are using the O-mat sensor for measurement-sensitive applications. Also note that resistance is calculated directly from the voltage reading with respect to a reference resistor, which in our case is 1000&#8486;. You can adjust the `R_RF` variable in Processing as necessary.
+
+Logs are stored at `Omat-Sensor/omat_processing/logs/`. Voltage logs are stored as `voltage-log_XXX.csv` and resistance logs are stored as `resistance-log_XXX.csv`, where `xxx` is the starting timestamp of the log in `YEAR-MONTH-DAY_HOUR-MINUTE-SECOND` format.
 
 ## How to Run
 
-In order to run this code, first download this repository to your computer (Code > Download ZIP). Extract the ZIP file, and open `Omat-Sensor/omat_arduino/omat_arduino.ino` with the Arduino IDE. Connect the Arduino to your computer. Make sure to select the correct port (Tools > Port). Once that is done, upload and run the code.
+### Building the Circuit
 
-Wait a few seconds before opening and running `Omat-Sensor/omat_processing/omat_processing.pde`. There should be a popup window showing a grid of values. You should be able to see the grid light up when pressure is applied to the sensing array. 
+**TODO: include circuit diagram**
 
-`Warning: Clicking the stop button on Processing causes the serial connection to unexpectedly terminate. Unplug and plug in the USB cable again to make sure the readings are aligned to the grid.`
+### Configuring the Code
+
+Once you have the circuit and sensing grid ready, clone or download this repository to your computer (Code > Download ZIP). Extract the ZIP file, and open `Omat-Sensor/omat_arduino/omat_arduino.ino` with the [Arduino IDE](https://www.arduino.cc/en/software). Connect the Arduino to your computer, and select the correct port (Tools > Port), which should have next to it `COM# (Arduino Uno)`. Remember the `COM#`. Once that is done, upload the code to the Arduino board.
+
+Now open `Omat-Sensor/omat_processing/omat_processing.pde` with [Processing](https://processing.org/download) and run the code. If the grid window appears shows up and starts updating, it works, and you can see the real-time visualization and check the logs! However, if it comes up blank or an error pops up, you should check the terminal output at the bottom of the Processing code window. It prints out a list of serial ports in the format `[#] "COM#"`. Change the `SERIAL_PORT` variable at the top to the `#` that matches your `COM#`. Re-run the code, and it should work.
+
+`Warning: Clicking the stop button on Processing causes the serial connection to unexpectedly terminate. Unplug and replug the USB cable to make sure the readings are aligned to the grid.`
+
+## References
+
+* [Original O-mat design](https://www.instructables.com/O-mat/)
 
 <!---
 The Arduino sends serial data into a port in the computer, which triggers Processing's serialEvent(), from which we can display the locations and magnitudes of pressure. 
