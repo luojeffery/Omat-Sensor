@@ -13,13 +13,13 @@ The O-mat sensor is designed to support flexible and scalable pressure sensors. 
 
 <div style="display:flex">
     <div style="flex:1; padding-right:10px">
-        <img src="res/circuit1.jpg">
+        <img src="res/circuit1.jpg" width="100px">
     </div>
     <div style="flex:1; padding-right:10px">
-        <img src="res/circuit2.jpg">
+        <img src="res/circuit2.jpg" width="100px">
     </div>
     <div style="flex:1; padding-right:10px">
-        <img src="res/grid1.jpg">
+        <img src="res/grid1.jpg" width="100px">
     </div>
 </div>
 
@@ -29,13 +29,13 @@ The O-mat sensor is designed to support flexible and scalable pressure sensors. 
 
 <div style="display:flex">
     <div style="flex:1; padding-right:10px">
-        <img src="res/demo1.jpg">
+        <img src="res/demo1.jpg" width="100px">
     </div>
     <div style="flex:1; padding-right:10px">
-        <img src="res/demo2.jpg">
+        <img src="res/demo2.jpg" width="100px">
     </div>
     <div style="flex:1; padding-right:10px">
-        <img src="res/demo3.jpg">
+        <img src="res/demo3.jpg" width="100px">
     </div>
 </div>
 
