@@ -11,33 +11,21 @@
 
 The O-mat sensor is designed to support flexible and scalable pressure sensors. Using our circuit and code, you can plug in a sensing grid and get a visual representation and log of recorded voltages and resistances.
 
-<div style="display:flex">
-    <div style="flex:1; padding-right:10px">
-        <img src="res/circuit1.jpg" width="100px">
-    </div>
-    <div style="flex:1; padding-right:10px">
-        <img src="res/circuit2.jpg" width="100px">
-    </div>
-    <div style="flex:1; padding-right:10px">
-        <img src="res/grid1.jpg" width="100px">
-    </div>
-</div>
+<p align="middle">
+    <img src="res/circuit1.jpg" width="200px">
+    <img src="res/circuit2.jpg" width="200px">
+    <img src="res/grid1.jpg" width="200px">
+</p>
 
 <br>
 
 ## Demo
 
-<div style="display:flex">
-    <div style="flex:1; padding-right:10px">
-        <img src="res/demo1.jpg" width="100px">
-    </div>
-    <div style="flex:1; padding-right:10px">
-        <img src="res/demo2.jpg" width="100px">
-    </div>
-    <div style="flex:1; padding-right:10px">
-        <img src="res/demo3.jpg" width="100px">
-    </div>
-</div>
+<p align="middle">
+    <img src="res/demo1.jpg" width="200px">
+    <img src="res/demo2.jpg" width="200px">
+    <img src="res/demo3.jpg" width="200px">
+</p>
 
 <br>
 
