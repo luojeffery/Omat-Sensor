@@ -47,7 +47,7 @@ The matrix of readings needs to be converted to a vector when logged, so the fir
 
 Our design is modified slightly from the original (which you can find [here](https://www.instructables.com/O-mat/)), but we include a diagram nonetheless. You can use the images above to help you wire the circuit compactly.
 
-[](res/circuit.png)
+![](res/circuit.png)
 
 ### Configuring the Code
 
