@@ -5,7 +5,7 @@
  **/
 
 /* SETTINGS */
-const int N = 5;  // number of rows/cols for the sensing array; [1-16]
+const int N = 1;  // number of rows/cols for the sensing array; [1-16]
 
 /* control pins */
 // output selector pins ['w' for "write"]

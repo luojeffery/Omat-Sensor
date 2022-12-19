@@ -1,111 +1,110 @@
 import processing.serial.*;
-import processing.opengl.*;
-import java.util.*;
+
+enum Measure { VOLTAGE, RESISTANCE };
 
 /* SETTINGS */
-int N = 5;  // number of rows/cols for the sensing array; [1-16]
-int SERIAL_PORT = 2;  // which serial port is the Arduino connected to?
-float VOLTAGE_IN = 5;  // what is the supply voltage?
-float REFERENCE_RESISTANCE = 1;  // what is the resistance of the reference resistor (in kilo-ohms)?
+final int N = 5;  // number of rows(==cols) for sensing array
+final int SERIAL_PORT = 2;       // which serial port is the Arduino connected to?
+final int SERIAL_BAUD = 115200;  // what is the baud rate of the serial port?
+final float V_IN = 5;    // supply voltage (V)
+final float R_RF = 1;    // reference resistance (kOhms)
+final float R_TH = 100;  // threshold resistance (kOhms), consider anything above to be overload
+Measure measure = Measure.VOLTAGE;  // measure voltage or resistance?
 
-int s;  // side length of each square, assuming width==height
-int h;  // half the side length, so integer coordinates represent the centers of the squares
+/* GLOBAL VARIABLES */
 Serial port;
-Serial force_port;
-boolean firstContact = false;
-int[] sensorReadings = new int[N*N];
-float[][] calibration = new float[N][N];
 int numSensorReadings = 0;
-boolean render = false;
-PrintWriter output;
+int[] sensorReadings = new int[N*N];
+boolean firstContact = false;
+boolean shouldRender = false;
+Logger logger = new Logger(measure);
 
-String filename = "log_resistance";
-String file_time = " " + month() + "-" + day() + "-" + year() + " " + hour() + "-" + minute() + "-" + second();
-String full_name = "log" + File.separator + filename + file_time + ".csv";
-
-
-void setup() {
-  // set up the Processing canvas
-  size(900, 900);
+void setup()
+{
+  size(960, 960);
+  
+  // interface configuration
   rectMode(CENTER);
   textAlign(CENTER);
-  textSize(32);
-  s = width/N;
-  h = s/2;
-  // set up the serial port
-  port = new Serial(this, Serial.list()[SERIAL_PORT], 115200);
-  // force_port = new Serial(this, Serial.list()[1],115200); 
+  textSize(width/5/N);
+  
+  // serial port configuration
   printArray(Serial.list());
-
-  
-  output = createWriter(full_name);
-  
-  println(full_name);
+  port = new Serial(this, Serial.list()[SERIAL_PORT], SERIAL_BAUD);
 }
-void draw() {
-  background(0);
+
+void draw()
+{
+  if (!shouldRender) return;
+  background(0);  // clear canvas
   
-  if (render) {
-    String line = month() + "/" + day() + "/" + year() + " " +
-                    hour() + ":" + minute() + ":" + second() + ":" + millis() + ","; // prepended timestamp
-    for (int i = 0; i < N; ++i) {
-      for (int j = 0; j < N; ++j) {
-        float voltage = VOLTAGE_IN - sensorReadings[i*N+j] * (VOLTAGE_IN / 255.0);
-        voltage = voltage - calibration[i][j];
-        //float resistance = REFERENCE_RESISTANCE * (VOLTAGE_IN / voltage - 1.0); // resistance is in kiloohms
-        fill(sensorReadings[i*N+j], 0, 0);  // Fill the next shape with variable intensity of red
-        rect(i*s+h, j*s+h, s, s);  // Create a square of length s at this index
-        fill(255);  // Fill the next shape with white
-        //if (Float.isInfinite(resistance)) {
-          //text("Inf k\u2126", i*s+h, j*s+h);
-          //line += resistance + ",";
-        //}
-       
-        //else {
-        //%.2fk\u2126
-        //%1$-3s
-          text(String.format("%4.3fV", voltage), i*s+h, j*s+h);  // Display the sensor reading at this index
-          line += String.format("%4.3fV", voltage) + ","; // formats the sensor reading as a right-padded three digit number
-        //}
+  int s = width/N;
+  int h = s/2;
+  
+  logger.beginLine();
+  for (int i = 0; i < N; ++i) {
+  for (int j = 0; j < N; ++j) {
+    // compute voltage and resistance
+    float v_out = sensorReadings[i*N+j] * (V_IN / 255.0);
+    float v_sensor = V_IN - v_out;
+    float r_sensor = R_RF * v_sensor / v_out;
+    
+    // display in interface
+    fill(sensorReadings[i*N+j], 0, 0);
+    rect(i*s+h, j*s+h, s, s);
+    fill(255);
+    if (measure == Measure.VOLTAGE) {
+      text(String.format("%1.2f V", v_sensor), i*s+h, j*s+h);
+      logger.log(v_sensor);
+    } else {
+      if (r_sensor > R_TH) {
+        text("OL", i*s+h, j*s+h);
+        logger.log(Float.MAX_VALUE);
+      } else {
+        text(String.format("%3.2f k\u2126", r_sensor), i*s+h, j*s+h);
+        logger.log(r_sensor);        
       }
     }
-    output.println(line);
-    output.flush();
-    render = false;
   }
+  }
+  logger.endLine();
+  shouldRender = false;
   delay(100);
 }
 
+
+
 void serialEvent(Serial port) {
   int inByte = port.read();
+  
   // establish contact with the Arduino
   if (!firstContact) {
     if (inByte == 'A') {
       port.clear();
       firstContact = true;
       port.write('A');
+      return;
     }
-  } else {
-    sensorReadings[numSensorReadings++] = inByte;
-    // once we have all N*N individual readings, ask for new sensor readings
-    if (numSensorReadings >= N*N) {
-      port.write('A');
-      numSensorReadings = 0;
-      render = true;
-    }
+  }
+
+  sensorReadings[numSensorReadings++] = inByte;
+  
+  // once we have all N*N individual readings, ask for new sensor readings
+  if (numSensorReadings == N*N) {
+    printArray(sensorReadings);
+    shouldRender = true;
+    port.write('A');
+    numSensorReadings = 0;
   }
 }
 
-void keyPressed() {
-  //calibration function
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      calibration[i][j] = sensorReadings[i*N+j] * (5.0 / 255);
-
-    }
-  }
+void keyPressed()
+{
+  //swapMeasurement();
 }
 
-void stop() {
-  output.close();
+void swapMeasurement()
+{
+  if      (measure == Measure.VOLTAGE)    measure = Measure.RESISTANCE;
+  else if (measure == Measure.RESISTANCE) measure = Measure.VOLTAGE;
 }
