@@ -61,9 +61,7 @@ Connect the Arduino to your computer, and in the Arduino IDE, select the port (T
 
 Now switch over to Processing and run the code. If the grid window appears shows up and starts updating, it works, and you can see the real-time visualization and check the logs! However, if it comes up blank or an error pops up, you should check the terminal output at the bottom of the Processing code window. It prints out a list of serial ports in the format `[#] "COM#"`. Change the `SERIAL_PORT` variable at the top to the `#` that matches your `COM#`. Re-run the code, and it should work.
 
-```
-Warning: Clicking the stop button on Processing causes the serial connection to unexpectedly terminate. Unplug and replug the USB cable to make sure the readings are aligned to the grid.
-```
+**WARNING**: Clicking the stop button on Processing causes the serial connection to unexpectedly terminate. Unplug and replug the USB cable to make sure the readings are aligned to the grid.
 
 ## References
 
